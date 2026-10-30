@@ -1,0 +1,135 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>360 Photosphere Viewer</title>
+
+    <link rel="stylesheet" href="css/index.css" />
+    <link rel="stylesheet" href="css/style.css" />
+  </head>
+  <body>
+    <div id="photosphere"></div>
+
+    <script src="js/three.min.js"></script>
+    <script src="js/core/index.js"></script>
+    <script src="js/gyroscope-plugin/index.js"></script>
+    <script src="js/stereo-plugin/index.js"></script>
+    <script src="js/autorotate-plugin/index.js"></script>
+
+    <script>
+      let sphereViewer = null;
+      let autorotatePlugin = null;
+      let gyroscropePlugin = null;
+
+      function processEvent(event) {
+        if (event.data == "autorotate") {
+          toggleAutorotate();
+        } else if (event.data == "gyroscope") {
+          toggleGyroscope();
+        } else if (event.data.startsWith("animate")) {
+          const input = event.data;
+          const values = input.split(" ");
+          const array = values.slice(1); // yaw, pitch
+          animate2(array);
+        } else {
+          console.log("[panorama path] = ", event.data);
+
+          sphereViewer = new PhotoSphereViewer.Viewer({
+            container: "photosphere",
+            panorama: event.data,
+            loadingImg: null,
+            defaultZoomLvl: 0,
+            navbar: false,
+            plugins: [
+              [
+                PhotoSphereViewer.AutorotatePlugin,
+                {
+                  // autostartDelay: 1000,
+                  autostartOnIdle: false,
+                  autorotateSpeed: "3rpm",
+                  // autorotatePitch: '15deg',
+                  // autorotateZoomLvl: 40,
+                },
+              ],
+              [
+                PhotoSphereViewer.GyroscopePlugin,
+                {
+                  touchmove: true,
+                  absolutePosition: false,
+                },
+              ],
+              PhotoSphereViewer.StereoPlugin,
+            ],
+          });
+
+          autorotatePlugin = sphereViewer.getPlugin("autorotate");
+
+          autorotatePlugin.addEventListener("autorotate", (e) => {
+            console.log("[autorotate]" + e.autorotateEnabled);
+            const status = {
+              status: "autorotate",
+              data: e.autorotateEnabled,
+            };
+            window.ReactNativeWebView.postMessage(JSON.stringify(status));
+          });
+
+          gyroscropePlugin = sphereViewer.getPlugin("gyroscope");
+
+          gyroscropePlugin.addEventListener("gyroscope-updated", (e) => {
+            console.log("[gyroscope]" + e.gyroscopeEnabled);
+            const status = {
+              status: "gyroscope",
+              data: e.gyroscopeEnabled,
+            };
+            window.ReactNativeWebView.postMessage(JSON.stringify(status));
+          });
+
+          sphereViewer.addEventListener("ready", () => {
+            const status = {
+              status: "Loading End",
+            };
+            window.ReactNativeWebView.postMessage(JSON.stringify(status));
+          });
+        }
+      }
+
+      function toggleAutorotate() {
+        const autorotate = sphereViewer.getPlugin(
+          PhotoSphereViewer.AutorotatePlugin,
+        );
+        autorotate.toggle();
+      }
+
+      function toggleGyroscope() {
+        const gyroscope = sphereViewer.getPlugin(
+          PhotoSphereViewer.GyroscopePlugin,
+        );
+        gyroscope.toggle();
+      }
+
+      window.addEventListener(
+        "message",
+        function (event) {
+          processEvent(event);
+        },
+        false,
+      );
+
+      document.addEventListener(
+        "message",
+        function (event) {
+          processEvent(event);
+        },
+        false,
+      );
+
+      function animate2(array) {
+        sphereViewer.animate({
+          yaw: array[0],
+          pitch: array[1],
+        });
+      }
+    </script>
+  </body>
+</html>

@@ -1,0 +1,33 @@
+# OSX
+.DS_Store
+
+# Node
+node_modules/
+npm-debug.log
+yarn-error.log
+
+# Android / Gradle
+android/.gradle/
+android/build/
+android/app/build/
+android/app/.cxx/
+android/local.properties
+android/captures/
+*.iml
+.idea/
+.gradle/
+.gradle-user-home/
+*.hprof
+
+# iOS
+ios/Pods/
+ios/build/
+**/xcuserdata/
+
+# Offline bundle working dirs (assets live in the GitHub Release, not git)
+offline-bundle/
+
+# Misc
+*.log
+coverage/
+.metro-health-check*

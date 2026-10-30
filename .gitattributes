@@ -1,0 +1,8 @@
+# Store files byte-for-byte; no line-ending conversion on Windows checkout.
+* -text
+*.tgz binary
+*.jar binary
+*.keystore binary
+*.ttf binary
+*.png binary
+*.jpg binary
