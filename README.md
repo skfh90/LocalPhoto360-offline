@@ -19,7 +19,7 @@ Offline Android app for **multi-shot 360 capture**, local storage, and 360 viewi
 
 ## Setup
 
-> **Offline Windows machine?** See [OFFLINE.md](OFFLINE.md). Every dependency (npm, Gradle, JDK, Node, Android SDK/NDK) ships as a GitHub Release asset.
+> **Offline Windows machine?** See [OFFLINE.md](OFFLINE.md). The npm and Gradle dependencies ship as GitHub Release assets. JDK 17, Node and the Android SDK/NDK must already be installed.
 
 ```bash
 cd LocalPhoto360

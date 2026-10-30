@@ -2,7 +2,22 @@
 
 How to build and update LocalPhoto360 on a Windows 10/11 x64 machine with **no internet access**.
 
-All dependencies ship as assets on the GitHub Release `offline-bundle-v1`, not in git.
+The project's npm and Gradle dependencies ship as assets on the GitHub Release `offline-bundle-v1`, not in git.
+
+## Prerequisites (not included in the bundle)
+
+Install these on the Windows machine first:
+
+| Tool | Version |
+|---|---|
+| JDK | **17**, with `JAVA_HOME` set (not 8 or 21) |
+| Node.js | 16 or later (24 LTS recommended) |
+| Android SDK Platform | 33 |
+| Android SDK Build-Tools | 33.0.0 |
+| NDK | 23.1.7779620 |
+| CMake | 3.22.1 |
+
+The setup script checks for each of these and stops with a list of whatever is missing.
 
 ## 1. On a machine with internet
 
@@ -19,23 +34,17 @@ Without `gh`, download the source ZIP and every asset by hand from the repositor
 |---|---|
 | `npm-cache.zip` | All 989 npm package tarballs from `package-lock.json` (for `npm ci --offline`) |
 | `gradle-offline.zip` | Gradle 8.0.1 distribution, plus a read-only Maven dependency cache for debug and release builds (includes Windows `aapt2`) |
-| `sdk-meta.zip` | Android SDK `package.xml` files and accepted licenses |
-| `OpenJDK17-windows-x64.msi` | Eclipse Temurin JDK 17 |
-| `node-v24.*-x64.msi` | Node.js 24 LTS |
-| `platform-33-ext3_r03.zip` | Android SDK Platform 33 |
-| `build-tools_r33-windows.zip` | Build-Tools 33.0.0 |
-| `android-ndk-r23b-windows.zip` | NDK 23.1.7779620 (VisionCamera / worklets native build) |
-| `cmake-3.22.1-windows.zip` | CMake 3.22.1 |
-| `platform-tools_r*-win.zip` | adb |
-| `commandlinetools-win-*_latest.zip` | sdkmanager (optional) |
+| `sdk-meta.zip` | Android SDK licenses and `package.xml` files (only added where the SDK lacks them) |
+| `platform-tools_r*-win.zip` | adb (only installed if the SDK has no `platform-tools`) |
+| `commandlinetools-win-*_latest.zip` | sdkmanager (only installed if missing) |
 
-Total size is about 2.8 GB. `SHA256SUMS.txt` lists a checksum for every asset (`Get-FileHash <file>` on Windows).
+Total size is about 1.8 GB. `SHA256SUMS.txt` lists a checksum for every asset (`Get-FileHash <file>` on Windows).
 
 ## 2. On the offline Windows machine
 
 Put the project at a **short path**, such as `C:\lp360`. Long paths break CMake and Ninja.
 
-Then run this in an **administrator** PowerShell:
+Then run this in PowerShell (administrator rights aren't needed):
 
 ```powershell
 cd C:\lp360
@@ -43,14 +52,14 @@ powershell -ExecutionPolicy Bypass -File offline\setup-windows-offline.ps1 -Bund
 ```
 
 The script does the following:
-- Installs JDK 17 and Node, skipping either one if already installed.
-- Sets up the Android SDK in `C:\Android\Sdk`.
+- Checks the prerequisites above.
+- Uses the SDK at `ANDROID_HOME`, or `%LOCALAPPDATA%\Android\Sdk` if that's unset. Adds adb, cmdline-tools and licenses only if they're missing.
 - Unpacks Gradle into `C:\g` and the dependency cache into `C:\g-ro`.
 - Sets these variables: `ANDROID_HOME`, `GRADLE_USER_HOME` and `GRADLE_RO_DEP_CACHE`.
 - Writes `android\local.properties`.
 - Runs `npm ci --offline`.
 
-If JDK 17 and Node are already installed, pass `-SkipMsi`. The SDK, Gradle and cache locations can be changed with `-SdkRoot`, `-GradleHome` and `-GradleRoCache`.
+The SDK, Gradle and cache locations can be changed with `-SdkRoot`, `-GradleHome` and `-GradleRoCache`.
 
 ## 3. Build and run
 
@@ -92,4 +101,4 @@ Then publish a new release, or copy `offline-bundle/` across by hand.
 | `npm ERR! code ENOTCACHED` | `package-lock.json` changed after the bundle was made. Regenerate the bundle. |
 | Realm prints `Failed to download prebuild` during `npm ci` | Harmless. That binary is only used for Node/Jest, not the Android app. |
 | CMake / Ninja "Filename longer than 260 characters" | Move the project to a shorter path such as `C:\lp360`, or use `subst L: <project>`. |
-| `SDK location not found` | Rerun the setup script, or create `android\local.properties` with `sdk.dir=C:/Android/Sdk`. |
+| `SDK location not found` | Rerun the setup script, or create `android\local.properties` with `sdk.dir=<your SDK path, with forward slashes>`. |

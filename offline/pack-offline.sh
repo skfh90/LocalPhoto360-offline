@@ -58,10 +58,10 @@ done
 cp -R "$ANDROID_HOME/licenses" "$M/"
 (cd "$WORK" && zip -qr "$OUT/sdk-meta.zip" sdk-meta)
 
-echo "==> Windows toolchain installers"
+echo "==> Windows adb + cmdline-tools (JDK, Node, SDK platform/build-tools/NDK/CMake are prerequisites, not bundled)"
 B=https://dl.google.com/android/repository
 curl -sSfL -o "$WORK/repo.xml" "$B/repository2-3.xml"
-for pkg in "platforms;android-33" "build-tools;33.0.0" "ndk;23.1.7779620" "cmake;3.22.1" "platform-tools" "cmdline-tools;latest"; do
+for pkg in "platform-tools" "cmdline-tools;latest"; do
   f="$(python3 -I - "$WORK/repo.xml" "$pkg" <<'PY'
 import sys, xml.etree.ElementTree as ET
 for p in ET.parse(sys.argv[1]).getroot().findall('remotePackage'):
@@ -74,10 +74,6 @@ PY
 )"
   curl -sSfL -o "$OUT/$f" "$B/$f"
 done
-curl -sSfL -o "$OUT/OpenJDK17-windows-x64.msi" \
-  "https://api.adoptium.net/v3/installer/latest/17/ga/windows/x64/jdk/hotspot/normal/eclipse"
-NODE_MSI="$(curl -sSfL https://nodejs.org/dist/latest-v24.x/SHASUMS256.txt | grep -o 'node-v[0-9.]*-x64.msi' | head -1)"
-curl -sSfL -o "$OUT/$NODE_MSI" "https://nodejs.org/dist/latest-v24.x/$NODE_MSI"
 
 (cd "$OUT" && shasum -a 256 * > SHA256SUMS.txt)
 ls -lh "$OUT"
